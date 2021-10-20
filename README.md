@@ -36,3 +36,26 @@ ref (youtube): https://www.youtube.com/watch?v=aZjYr87r1b8&ab_channel=AbdulBari
 	- MyISAM
 	- InnoDB
 	- Memory
+
+## Horizontal scaling: 
+
+add more machines
+
+## Vertical scaling 
+
+add more powerful RAM, CPU
+
+## Scaling up options
+
+### Scaling up hardware
+
+increase CPU, RAM, and so on (vertical scalling)
+
+### Add replicas (could be problematic): add master (e.g., receive the write/read request from your app and coordinate slaves) and slave (replicas) 
+
+- The disadvantage of replicas: eventual consistency might cause read access to get stale data. For example, after a write access to the master and still updating each slave for the write request, another request for the read reads the stale data from one of the slave. 
+
+### Sharding (better solution? Too complicated):
+
+Prepare the total n number of databases (called S1, S2, …, SN) and store a part of your data in each shard database. For example, data of customer id 1 to 50 is stored in S1, and data of customer id 51 to 100 are stored in S2, and so on. 
+Need a logic (mapping table or another database to identify which customer id is stored in which shard database)
