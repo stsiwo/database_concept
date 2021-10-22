@@ -1,5 +1,9 @@
 # RDBMS (esp MySQL)
 
+## Antipatterns
+
+### Jaywalking
+
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
 	- analogy: indeces on a book
