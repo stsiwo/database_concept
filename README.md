@@ -4,6 +4,32 @@
 
 ### Jaywalking
 
+### Adjacency List
+
+one-to-one relationship with the same table. this design is troublesome when you want to store the tree structure data (e.g., a comment has multiple comments and each child comment has mutliple comment too)
+
+#### whey it bothers 
+
+1. how to retrieve a particular level of nodes? you need to use mutliple join keyword based on the how much level of node you want to retrieve. (e.g., if you want to get a note which reside in 3 level, you need to use 3 join keywords.
+
+#### solutions (how to store tree structure data in database the efficient way)
+
+1. __Path Enumeration__ 
+
+create a column and store the path. it represents hiarachy. for example, one row has '/a/b/c' in the column and another has 'a/b'. this represents that the 2nd row is the parent of the first row.
+
+drawbacks:
+
+  1. __no validation for the path column in database__. for example, if the parent path does not exists? you always have to validate the input in application side.
+
+2. Nested Sets
+
+
+
+3. Closure Tables
+
+
+
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
 	- analogy: indeces on a book
