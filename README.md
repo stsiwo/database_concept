@@ -24,10 +24,20 @@ drawbacks:
 
 2. Nested Sets
 
+create two columns called 'nsleft' and 'nsright' to locate the position of a node. 
+
+there is a rule to create the Nested Sets. __the nsleft number is less than the numbers of all the node’s children, whereas the nsright number is greater than the numbers of all the node’s children. These numbers have no relation to the comment_id values__.
+
+to find a particular node and its desendants, you need to use 'between' in 'where' condition and put 'nsleft' and 'nsright' value of the target node. 
+
+updating the tree is more complex than other solutions. see textbook at 47 page. you need to recalculate 'nsleft' and 'nsright' value of all nodes. (sound like not practical)
 
 
 3. Closure Tables
 
+create a additional table besides comments table. then, store the relationship info (e.g., anscestor and descendant).
+
+relatively easier than others esp Nested Sets for CRUD operation. 
 
 
 ## index (with MySQL):
