@@ -1,5 +1,15 @@
 # RDBMS (esp MySQL)
 
+## Terms
+
+### Natual Key
+
+a unique column that has a business meaning such as SSN, email
+
+### Surrogate Key
+
+a unique column that does not has a business meaning such UUID, auto-increment
+
 ## Antipatterns
 
 ### Jaywalking
@@ -38,6 +48,12 @@ updating the tree is more complex than other solutions. see textbook at 47 page.
 create a additional table besides comments table. then, store the relationship info (e.g., anscestor and descendant).
 
 relatively easier than others esp Nested Sets for CRUD operation. 
+
+### Primary Key When Needed
+
+Are all tables required to have a primary key?
+
+it is not mandatory that you have to use the primary key in every table. if you think you don't need the primary key, you don't need it. (e.g., can use compound keys on join table for many-to-many relationship)
 
 
 ## index (with MySQL):
