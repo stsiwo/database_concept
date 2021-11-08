@@ -86,7 +86,7 @@ ex)
 - [Single Table Inheritance](#single-table-inheritance)
 - [Concrete Table Inheritance](#concrete-table-inheritance)
 - [Class Table Inheritance](#class-table-inheritance)
-- [](#class-table-inheritance)
+- [Semistructured Data (Serialized LOB)](#semistructured-data-serialized-lob)
 
 ## Techniques 
 
@@ -176,6 +176,15 @@ for example, 'attribute' column contains a json about additional keys and values
 #### cons
 
 - you cannot use SQL features (e.g., query, where, and so on) on the 'attributes' column
+
+### Polymorphic Association
+
+this antipattern is used when you want to create multiple association for two different parent tables with a single foreign key. obviously, reference integrity does not allow you to store a single foreign key column from more than one tables.
+
+![polymorphic assciation image](/polymorphic-association.png)
+
+
+
 
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
