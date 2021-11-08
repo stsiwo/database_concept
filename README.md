@@ -10,6 +10,16 @@ a unique column that has a business meaning such as SSN, email
 
 a unique column that does not has a business meaning such UUID, auto-increment
 
+### Discriminator (Partial Key)
+
+a column in a weak entity to be a partial key to be unique by combining with another columns. 
+
+sounds like composit key?? what is the different??
+
+### Weak Entity
+
+an entity does not have a primary key attribute. 
+
 ## Antipatterns
 
 ### Jaywalking
@@ -55,6 +65,117 @@ Are all tables required to have a primary key?
 
 it is not mandatory that you have to use the primary key in every table. if you think you don't need the primary key, you don't need it. (e.g., can use compound keys on join table for many-to-many relationship)
 
+### Entity-Attribute-Value (EVA) Design
+
+a generalization of row modeling. the idea is that you try to records all of your data in this single table with columns called entity, attribute, and values.
+
+ex)
+| entity | attribute | value |
+| ------- | --------- | ----- |
+| person | id        | 1 |
+| product | id       | 12 |
+| cateory | name | 'shoes' |
+
+#### Why Antipattern?
+
+- you can't use data type. value can be any type otherwise, it lose its benefits.
+- you can't use referential intergiry on attribute column. a value of attribute column can be anything. 
+
+#### Solutions
+
+- [Single Table Inheritance](#single-table-inheritance)
+- [Concrete Table Inheritance](#concrete-table-inheritance)
+- [Class Table Inheritance](#class-table-inheritance)
+- [](#class-table-inheritance)
+
+## Techniques 
+
+### Single Table Inheritance
+
+create a inheritance with a single table. you accommodate all of fields in subclasses in a single table. 
+
+ex) student and teacher subclasses are combined in 'person' table in database. 'gpa' column is only used by student and 'evaluation_score' is only used by teacher.
+
+| id | name | type | gpa | evaluation_score | 
+| ------- | --------- | ----- | ---- |
+| 1 | 'john' | student | 3.4 | NULL |
+| 2 | 'yoko' | teacher | NULL | 4.0 |
+| 3 | 'satoshi' | teacher | NULL | 3.0 |
+
+### Concrete Table Inheritance
+
+create a separate table for each subclass, but this does not create a table for the superclass. therefore, the common fields are duplicated in each table for subclasses.
+
+__table: teacher__
+| id | name | evaluation_score | 
+| ------- | --------- | ----- | 
+| 1 | 'john' | 4.0 |
+| 2 | 'yoko' | 5.0 |
+| 3 | 'satoshi' | 3.0 |
+
+__table: student__
+| id | name | gpa | 
+| ------- | --------- | ----- | 
+| 1 | 'john' | 4.0 |
+| 2 | 'yoko' | 5.0 |
+| 3 | 'satoshi' | 3.0 |
+
+### Class Table Inheritance
+
+best?
+
+mimic inheritance in database. create tables for a superclass and each subclasses.
+
+the trick is use the same id in superclass and each subclass so that you know its subclass.
+
+__table: person__
+| id | name | 
+| ------- | --------- | 
+| 1 | 'john' |
+| 2 | 'yoko' |
+| 3 | 'satoshi' |
+
+__table: student__
+| id | gpa | 
+| - | - | 
+| 1 | 4.0 |
+| 2 | 5.0 |
+| 3 | 3.0 |
+
+__table: teacher__
+| id | evaluaton_score | 
+| - | - | 
+| 1 | 4.0 |
+| 2 | 5.0 |
+| 3 | 3.0 |
+
+#### pros
+
+- no duplication of columns
+
+#### cons
+
+- a little complciated sql statement (e.g., join) for SQL statement
+
+### Semistructured Data (Serialized LOB) 
+
+similar to [Single Table Inheritance](#single-table-inheritance), but you create a single column to store a set of attribute as JSON/XML so that you can serialize it at your applicaiton.
+
+for example, 'attribute' column contains a json about additional keys and values based on the type (e.g., { gpa: 4.0, key1: value1, key2: value2 } for student type.
+
+| id | name | type | attributes |
+| - | - | - | - |
+| 1 | 'john' | student | '{ gpa: 4.0 }' |
+| 2 | 'yoko' | teacher | '{ evaluation_score: 3.0 }' |
+| 3 | 'satoshi' | teacher | '{ evaluation_score: 4.2 }' |
+
+#### pros
+
+- extensible: you don't need to create additional columns if you need to add other fields.
+
+#### cons
+
+- you cannot use SQL features (e.g., query, where, and so on) on the 'attributes' column
 
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
