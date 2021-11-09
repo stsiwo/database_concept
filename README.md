@@ -20,6 +20,68 @@ sounds like composit key?? what is the different??
 
 an entity does not have a primary key attribute. 
 
+### Temporary Table
+
+a special type of table that allows you to store a temporary result set, which you can reuse several times in a single session.
+
+this is very handy when it is impossible or expensive to query data that requires a single SELECT statement with the JOIN clauses. In this case, you can use a temporary table to store the immediate result and use another query to process it.
+
+a temporary can keep the data in the table so you don't need to run the expensive query again. 
+
+you can use the temporary table as a usual table withing the session. 
+
+```
+-- create a temporary table based on DDL
+CREATE TEMPORARY TABLE credits(
+    customerNumber INT PRIMARY KEY,
+    creditLimit DEC(10,2)
+);
+
+-- create a temporary table based on queries
+CREATE TEMPORARY TABLE top_customers
+SELECT p.customerNumber, 
+       c.customerName, 
+       ROUND(SUM(p.amount),2) sales
+FROM payments p
+INNER JOIN customers c ON c.customerNumber = p.customerNumber
+GROUP BY p.customerNumber
+ORDER BY sales DESC
+LIMIT 10;
+
+-- you can use it as usual table.
+SELECT 
+    customerNumber, 
+    customerName, 
+    sales
+FROM
+    top_customers
+ORDER BY sales;
+```
+
+reference: [here](https://www.mysqltutorial.org/mysql-temporary-table/)
+
+### Views
+
+Views are stored queries that when invoked produce a result set. A view acts as a virtual table.
+
+```
+-- create a view called 'accounts_v_members'
+CREATE VIEW `accounts_v_members` AS SELECT `membership_number`,`full_names`,`gender` FROM `members`;
+
+-- call the view
+SELECT membership_number, full_names FROM accounts_v_members
+```
+
+- __every time__ you run the view, it gerenate the result on the view as a virtual table. 
+- you can use views to make your query simple. if you have a complex select with lots of joins, you can implement it in a view and simply call the view without need to consider all these joins. You can then reuse this view.
+- A view can provide a simple, public interface to a complex SELECT statement, so applications can just 'SELECT column-list FROM my-easy-view'.
+
+reference: [here](https://www.guru99.com/views.html)
+
+## full text search
+
+Full-text search is a technique that enables you to search for records that might not perfectly match the search criteria.
+
 ## Antipatterns
 
 ### Jaywalking
@@ -184,25 +246,128 @@ this antipattern is used when you want to create multiple association for two di
 ![polymorphic assciation image](/polymorphic-association.png)
 
 
+### Metadata Tribbles
+
+this antipattern is used when you want to prevent a single table from increase the number of row for performance (e.g., the more data in a table, the worse the performance). 
+
+What this antipattern allows you to do is that you create a table per a range of a value on an attibute. for example, you create a table based on the year (e.g., 2000, 2001, 2002, and so on) to prevent performance degradation. 
+
+#### Why Anitipattern?
+
+- hard to manage primary key. you need to manage the uniqueness of primary key across those tables.
+- hard to manage query. you have to use 'union' to connect those tables.
+- cannot use the same foreign key for those tables.
+- hard to add a new column. you need to add a new column for each table and must consistent name & data. 
+
+#### Solutions
+
+1. __horizontal partitioning (esp sharding)__: 
+
+- create replicas (e.g., duplicate schema) and partition rows (e.g., ID: 1 - 100 goes to replica 1 and ID: 201 - 400 goes to replica2, and so on)
+
+2. __vertical partitioning with dependent table__:
+
+- split a table with columns (esp, you split columns which is seldom used). specifically, you identify the columns takes a large size and seprate those columns in a dependent table. you can use the primary key as a foreign key for the depedent table. 
+
+the benefit is that you can exclude thoes large columns from the main table and when you do queries, it improve performance. 
+
+### Rounding Errors
+
+use DECIMAL or NUMERIC if you need a value to be precise. don't use FLOAT. 
+
+by specification, FLOAT store its value on base-2 format and some number cannot be represented in base-2 format precisely so need to be rounded, so when you do calculation/comparison, it does not work as expected.
+
+### Flavors
+
+how to store enum in database?
+
+this antipattern recommends you to use ENUM type or similar data type. 
+
+#### Why Anitipattern?
+
+- hard to update the data type. what if you want to add another value to the enum? you need to redefine the data type again
+- less portability. what if other database brands don't support ENUM or have different data type to support ENUM. 
+
+#### Solutions
+
+- __create a table to store the enum values__: rather than using data type, you can create a table to keep track of your enum values. 
+
+table: user_types
+| id | name |
+| - | - | 
+| 1 | 'guest' | 
+| 2 | 'member' | 
+| 3 | 'admin' | 
+
+benefits:
+
+- good portability. if you migrate to another database brands, it is easy since this is just a table
+- easy to update. if you want to add another value, you can use 'insert' statement. 
+
+### Phantom Files
+
+image storage should be in database or filesystem. 
+
+this textbook said that it should be database because of the following reasons:
+
+1. easy to update. deleting image in database is much easier than one in filesystem since you can delete it with 'delete' statement automatically.
+2. easy to migrate. you can easily migrate database to another if images are included in database.
+3. respect access priviledge. if you store images in database, you can apply the access priviledge to the columns since it is inside database.
+4. easy to do TX. you can easily wrap with transaction and do rollback easily. 
+
+However, many developers are for filesystems.
+
+1. https://www.quora.com/Is-it-better-to-store-images-in-a-database-or-a-file-system
+2. https://stackoverflow.com/questions/3748/storing-images-in-db-yea-or-nay
+
+it is up to you which you prefer.
+
+### Index Shotgun
+
+use indecies properly for performance.
+
+#### Anitipatterns
+
+- __no index__: the main benefit of indeces is faster access your desired rows for SELECT, UPDATE, DELETE rather than full scan of a table. 
+- __too many index__: adding extra index on the same column does not give you benefits.
+
+1. primary key column: primary key has an index so you don't need to additinal index.
+
+#### Solutions
+
+- __use MENTOR (Measure, Explain, Nominate, Test, Optimize, Rebuild)__: 
+
+1. __Measure__: identify which query causes performance problems. you can use 'slow.query.log' in MySQL. it is important to focus on that you can get great benefits by this performance tuning since if you focus on the column which is not used for queries often, you are wasting your time. 
+
+2. __Explain__: identify why the target query is so slow. use __query execution plan (QEP)__ (e.g., in MySQL, it is 'EXPLAIN' keyword) 
+
+3. __Nominate__: 
+
+#### Caveats When Performance Tuning
+
+- disable cache.
+- enable profiling only when performance tuning so that you can get enough information for it and disable after you done the performance tuning.
+
+
+- create an index on a column only you need. 
 
 
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
 	- analogy: indeces on a book
 	
-## clustered index:
+### clustered index:
 	- only one clustered index per table
 	- sort the data rows in the table based on the indexed column
 	- in RDBMS, usually primary key is a clustered index
 	
-## non-clustered index (secondary indexes):
+### non-clustered index (secondary indexes):
 	- stores the data at one location and indeces at another location. 
 	- the index contains pointers to the location of that data.
 	- a single table can have amny non-clustered indexes because an index in the non-clustered in dex is stored in different places. 
 	- improve the performance of quieries that use keys which are not assigned as a primary key. 
 	
-	
-## B-tree index: 
+### B-tree index: 
 	tree structure that has many children. (*binary tree has only 2 children).
 	enabling fast lookup for exact matches (equals operator) and ranges (for example, greater than, less than, and BETWEEN operators).
 	available for most storage engines, such as InnoDB and MyISAM
@@ -214,10 +379,33 @@ this antipattern is used when you want to create multiple association for two di
 
 ref (youtube): https://www.youtube.com/watch?v=aZjYr87r1b8&ab_channel=AbdulBari
   
-## hash index:
+### hash index:
 	intended for queries that sue equality operators (= or <=> (null safe))
 	only available at "Memory" storage engines 
 	
+### FULLTEXT index:
+
+enable full text search if a column has FULLTEXT index.
+
+in MySQL, there are three modes
+
+1. __natural language search type__: search a given word in a text collection (one or more text columns) and sort by the highest relevance first.
+2. __query expansion type__: frequently used when the user relies on implied knowledge - for example, the user might search for “DBMS” hoping to see both “MongoDB” and “MySQL” in the search results.
+3. __boolean search type__: you can customize query with operators (e.g., you want to search "words" not but "word2")
+
+### covering index: 
+
+covering index: a special case of an index in InnoDB where all required fields for a query are included in the index; in other words, the index itself contains the required data to execute the queries without having to execute additional reads.
+
+if your table includes clustered index (e.g., primary key) and non clustered index (e.g., indices, except for primary key, where you explicitly specify), the database engine must execute additional look up, clustered search (B-tree) after non clustered search (B-tree). this negatively affect the execution time. 
+
+in order to prevent this, you can use covering index. 
+
+### Tips
+
+1. don't use LIKE keywrod to search a text. use FULLTEXT search index for performance gains
+2. 
+
 ## storage engines:
 	- MyISAM
 	- InnoDB
