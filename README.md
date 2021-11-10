@@ -341,15 +341,20 @@ use indecies properly for performance.
 
 2. __Explain__: identify why the target query is so slow. use __query execution plan (QEP)__ (e.g., in MySQL, it is 'EXPLAIN' keyword) 
 
-3. __Nominate__: 
+3. __Nominate__: analyze and identify the candidates (e.g., columns) for the index
+
+4. __Test__: test the index with queries. 
+
+5. __Optimize__: enable cache.
+
+6. __Rebuild__: perform maintanance regulary. this is because if you columns is changed (e.g., adding a new column, removing an existing column) affects performance of your index. in order to keep the good balance your index, regulary maintanance is mandatory.
 
 #### Caveats When Performance Tuning
 
-- disable cache.
+- disable cache (e.g., use 'EXPLAIN SELECT SQL_NO_CACHE <SELECT_LIST> FROM <TABLE_NAME> ...;' keyword when you test)
 - enable profiling only when performance tuning so that you can get enough information for it and disable after you done the performance tuning.
-
-
 - create an index on a column only you need. 
+- test every case including INSERT, UPDATE, DELETE since adding indices make those statement worse.
 
 
 ## index (with MySQL):
@@ -404,13 +409,41 @@ simply said that if your columns in your query does not include, the engine need
 
 in order to prevent this, you can use covering index. you just need to include the columns in the index when creating the index.
 
+the below image shows that if you don't have clustered index, which means that you only have non-clustered index, you don't need to care about covering index. However, if your table include clustered index and non-clustered index, it might causes this problem and you need to use covering index to solve it.
+
 ![covering index image](./covering-index.png)
 
-ref: [here](https://www.softel.co.jp/blogs/tech/archives/5139)
+ref: [here](https://www.softel.co.jp/blogs/tech/archives/5139) (experiment)
+ref: https://stackoverflow.com/questions/609343/what-are-covering-indexes-and-covered-queries-in-sql-server (image)
 
+### the star system
 
+this system show the effectiveness of your index. 
 
+here is an example of terrible query which turns a wonderful query after applying this system.
 
+![star system terrible query](./terrible-query-with-star-system)
+
+1. one star: rows referenced by the query are grouped by together in the index
+
+pick all columns used in equality preficate (e.g., where xxx = yyy ) and those columns are condidates for your index.
+
+2. two star: rows referenced by the query are ordered in the way you want them 
+
+pick all columns used in GROUP BY/ORDER BY and those columns are also condidates for your index.
+
+3. three star: covering index
+
+add all columns used in SELECT and those columns are also candidates for your index.
+
+the result would be:
+
+```
+CREATE INDEX wonderful_index on sample_table
+(star1_column..., star2_column..., star3_column...)
+```
+
+* note: there is a lot of exceptions so please review [this power point](https://www.slideshare.net/billkarwin/how-to-design-indexes-really) when implement.
 
 ### Tips
 
@@ -460,6 +493,20 @@ AND column2 = 'YYY';
 you see 'using filesort' when you run a query with 'EXPLAIN'. this means that the engine need to sort the result since the natural order does not respect for the your query. this takes longer time to finish. 
 
 ref: [here](https://stackoverflow.com/questions/65912380/what-does-using-filesort-mean-in-mysql)
+
+## Preloading Index
+
+Preloading enables you to put the table index blocks into a key cache buffer in the most efficient way: by reading the index blocks from disk sequentially.
+
+i don't completely understand but it sounds like that when start MySQL, you can effectively access indices because of this preloading (e.g., put the information about the indices on the cache rather than hard disk).
+
+ref: [here](https://dev.mysql.com/doc/refman/8.0/en/index-preloading.html)
+
+## Optimizing Table
+
+if you do a lot of UPDATE/DELETE, it might lead fragmentation in your MySQL data file. in this case, you can use 'OPTIMIZE TABLE' command to fix the fragmentation and recover the unused space. 
+
+ref: [here](https://www.techbeamers.com/mysql-optimize-table/)
 
 ## storage engines:
 	- MyISAM
