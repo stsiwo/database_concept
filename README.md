@@ -1,5 +1,9 @@
 # RDBMS (esp MySQL)
 
+## Textbook 
+
+[SQL Antipatterns](https://www.r-5.org/files/books/computers/languages/sql/style/Bill_Karwin-SQL_Antipatterns-EN.pdf)
+
 ## Terms
 
 ### Natual Key
@@ -81,6 +85,10 @@ reference: [here](https://www.guru99.com/views.html)
 ## full text search
 
 Full-text search is a technique that enables you to search for records that might not perfectly match the search criteria.
+
+## derived table
+
+a verital table 
 
 ## Antipatterns
 
@@ -382,9 +390,72 @@ select * from foo group by category;
 |  4 | bar      |
 |  1 | foo      |
 +----+----------+
-
 ```
 
+ref: [here](https://stackoverflow.com/questions/1645921/mysql-group-by-behavior)
+
+#### Solution
+
+make sure that you follow that Single Value Rules. 
+
+you can use subquery, derived table, join, and aggregate operator (e.g., MAX, ...) to make other columns (e.g., 'id' in the above example) have a single distinct vlaue. 
+
+### Random Selection 
+
+how to return a single row randomly?
+
+#### Solutions
+
+__quick but bad performance when scal is bigger__: 
+
+```
+SELECT * FROM Bugs ORDER BY RAND() LIMIT 1;
+```
+
+ref: [here](https://stackoverflow.com/questions/580639/how-to-randomly-select-rows-in-sql)
+
+__good performance even if scale is biggger (textbook recommendation)__: see textbook (p187)
+
+### Poor Man's Search Engine
+
+how to do full text search in database.
+
+#### Antipattern
+
+do it with LIKE. the horrible idea.
+
+#### Solutions
+
+use FULLTEXT index in MySQL
+
+### Spaghetti Query
+
+creating a one complicated query is good idea?
+
+#### Antipattern
+
+write a complex query at once.
+
+#### Solutions
+
+create a query step by step. 
+
+if you need to return two different logic, create a simple query for each logic. don't need to combine them.
+
+### Implicit Columns
+
+use wildcard in SELECT is good?
+
+#### Antipattern
+
+use wildcard in that as many as possible. 
+
+- hard to detect an error when change. if you use wildcard and when fetching the data in your app, it relies on the position when determineing the value rather than column name. this is not robust since adding a new column results in the inconsistency the position and you need to fix the position correctly.  
+- bad for performance and scalability. this is because wildcard returns all of your columns even the one you actually don't need.
+
+#### Solutions
+
+use explicit columns. don't use wildcard. 
 
 
 
