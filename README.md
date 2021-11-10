@@ -355,6 +355,7 @@ use indecies properly for performance.
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
 	- analogy: indeces on a book
+	- trade off between reading (SELECT) and writing (INSERT, UPDATE, DELETE). adding an index makes the reading faster and makes writing slower and vice versa. this is because index are used to speed up the reading. when the writing, it requires the engine to modify the index table too so that's why adding index makes the writing slower. 
 	
 ### clustered index:
 	- only one clustered index per table
@@ -387,6 +388,8 @@ ref (youtube): https://www.youtube.com/watch?v=aZjYr87r1b8&ab_channel=AbdulBari
 
 enable full text search if a column has FULLTEXT index.
 
+FULLTEXT can help with that query if bar is a "word". FULLTEXT handles words, not arbitrary substrings (as LIKE does).
+
 in MySQL, there are three modes
 
 1. __natural language search type__: search a given word in a text collection (one or more text columns) and sort by the highest relevance first.
@@ -397,14 +400,66 @@ in MySQL, there are three modes
 
 covering index: a special case of an index in InnoDB where all required fields for a query are included in the index; in other words, the index itself contains the required data to execute the queries without having to execute additional reads.
 
-if your table includes clustered index (e.g., primary key) and non clustered index (e.g., indices, except for primary key, where you explicitly specify), the database engine must execute additional look up, clustered search (B-tree) after non clustered search (B-tree). this negatively affect the execution time. 
+simply said that if your columns in your query does not include, the engine need to refer to the original table besides the index. this makes performance worse if you don't include the columns in the index since it need to lookup the index (non-clustered) and the primary index (clustered). 
 
-in order to prevent this, you can use covering index. 
+in order to prevent this, you can use covering index. you just need to include the columns in the index when creating the index.
+
+![covering index image](./covering-index.png)
+
+ref: [here](https://www.softel.co.jp/blogs/tech/archives/5139)
+
+
+
+
 
 ### Tips
 
 1. don't use LIKE keywrod to search a text. use FULLTEXT search index for performance gains
-2. 
+2. the order of columns in a index matters. if you include the first column of the index in where/group by/order by clause, you can get benefits from the index, otherwise you cannot get benefits.
+
+```
+-- index 1
+CREATE INDEX sample_index ON sample_tables (column1, column2, column3);
+
+-- you CAN get benefits from the above index for the following query
+
+SELECT * FROM sample_tables
+WHERE column1 = 'XXX' -- column1 is the first column in the index so you can get benefit
+AND column2 = 'YYY';
+
+-- you CANNOT get benefits from the above index for the following query
+
+SELECT * FROM sample_tables
+WHERE column3 = 'XXX' -- colum1 is not included in the query so you cannot get the benefits
+AND column2 = 'YYY'; 
+
+-- index 2
+CREATE INDEX sample_index ON sample_tables (column3, column2, column1);
+
+-- you CANNOT get benefits from the above index for the following query
+
+SELECT * FROM sample_tables
+WHERE column1 = 'XXX' -- column3 is not included in the index so no benefits
+AND column2 = 'YYY';
+
+or 
+
+SELECT * FROM sample_tables
+WHERE column2 = 'XXX' -- only single colum which is not the first column the index does not help
+
+-- you CAN get benefits from the above index for the following query
+
+SELECT * FROM sample_tables
+WHERE column3 = 'XXX' -- column3 is the first column so you can get benefit
+AND column2 = 'YYY';
+
+```
+
+### filesort
+
+you see 'using filesort' when you run a query with 'EXPLAIN'. this means that the engine need to sort the result since the natural order does not respect for the your query. this takes longer time to finish. 
+
+ref: [here](https://stackoverflow.com/questions/65912380/what-does-using-filesort-mean-in-mysql)
 
 ## storage engines:
 	- MyISAM
