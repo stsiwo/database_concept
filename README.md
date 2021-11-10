@@ -422,7 +422,7 @@ this system show the effectiveness of your index.
 
 here is an example of terrible query which turns a wonderful query after applying this system.
 
-![star system terrible query](./terrible-query-with-star-system)
+![star system terrible query](./terrible-query-with-star-system.png)
 
 1. one star: rows referenced by the query are grouped by together in the index
 
