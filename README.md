@@ -356,6 +356,38 @@ use indecies properly for performance.
 - create an index on a column only you need. 
 - test every case including INSERT, UPDATE, DELETE since adding indices make those statement worse.
 
+### Fear of Unkown
+
+NULL is different from the one in the most programming lanaguage (e.g., NULL is not FALSE, 0, or '').
+
+### Ambiguous Group
+
+#### Single Value Rule
+
+when using 'GROUP BY', the all columns in the SELECT list must have a single value per the group. otherwise, the query does not return the proper result or throws an error. 
+
+```
+-- voilating Single Value Rule
+-- 'id' does not have a single value per 'category' (e.g., 'fool' category has multiple distinct vlaues such as 1, 2, 3 and 'bar' has multiple disctinct values such as 4, 5 , 6)
+create table foo (id serial primary key, category varchar(10));
+
+insert into foo (category) values 
+  ('foo'), ('foo'), ('foo'), ('bar'), ('bar'), ('bar');
+
+select * from foo group by category;
+
++----+----------+
+| id | category |
++----+----------+
+|  4 | bar      |
+|  1 | foo      |
++----+----------+
+
+```
+
+
+
+
 
 ## index (with MySQL):
 	- goal: to find data from a tables quickly. without index, you need to find the data from the beginning. 
@@ -535,3 +567,71 @@ increase CPU, RAM, and so on (vertical scalling)
 
 Prepare the total n number of databases (called S1, S2, …, SN) and store a part of your data in each shard database. For example, data of customer id 1 to 50 is stored in S1, and data of customer id 51 to 100 are stored in S2, and so on. 
 Need a logic (mapping table or another database to identify which customer id is stored in which shard database)
+
+
+## Basics
+
+### TIMESTAMP VS DATETIME
+
+__TIMESTAMP__: with time zone info
+
+- convert this TIMESTAMP values from the current time zone to UTC for storage and back from UTC to the current time zone for retrieval.
+
+- you need to set time zone for MySQL to adjust if rather than UTC
+
+__DATETIME__: no time zone info
+
+### Display Proper DateTime for Each Client
+
+1. store TIMESTAMP (UTC) in database
+2. display the date and time in client time (browsers)
+
+ref: https://stackoverflow.com/questions/2251780/php-ini-date-timezone-server-or-client-location-time-zone
+ref: https://stackoverflow.com/questions/10834665/how-can-i-handle-time-zones-in-my-webapp
+
+- questions)
+- how to save the timestamp with java data type?
+- is it ok to use LocalDateTime and can transmit it to mysql TIMESTAMP type?
+- see this: https://mkyong.com/java8/java-8-convert-localdatetime-to-timestamp/
+
+### WHERE VS HAVING
+
+- WHERE: filters data before select.
+
+- HAVING: filters resulting data after select.
+
+ref: https://stackoverflow.com/questions/2905292/where-vs-having/18710763#18710763
+
+### LEAST vs MIN
+
+- LEAST: you can compare multiple columns,
+
+- MIN: you can only compare a single column
+
+### How to exclude NULL from min, max, sum ...
+
+- Coalesce:
+
+return the first non-null value in a list of arguments.
+
+- use IFNULL.
+
+e.g., greatest(IFNULL(column1, 0), ...)
+
+ref: https://stackoverflow.com/questions/3078370/how-to-find-least-non-null-column-in-one-particular-row-in-sql
+
+### Distinct vs Group By
+
+distinct: used to remove duplicated rows, so not duplicated row is never deleted.
+
+group by: equivalent to 'Distinct'
+
+### Cartesian Product (a.k.a CROSS JOIN)
+
+you can think of Cartisan Product in Math. list of all possible combination of two tables.
+
+generally, it is considered bad since it generates a lot of redundancy rows.
+
+syntax) SELECT * from table_a, table_b or SELECT * from table_a CROSS JOIN table_b 
+
+ex) see this: https://www.w3resource.com/mysql/advance-query-in-mysql/mysql-cross-join.php
