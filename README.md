@@ -706,3 +706,18 @@ generally, it is considered bad since it generates a lot of redundancy rows.
 syntax) SELECT * from table_a, table_b or SELECT * from table_a CROSS JOIN table_b 
 
 ex) see this: https://www.w3resource.com/mysql/advance-query-in-mysql/mysql-cross-join.php
+
+
+## Design Process
+
+## RDBMS (MySQL) 
+
+design and implement RDBMS.
+
+1. create tables with fields based on the requirment.
+2. identify the relationship
+  - One-To-One: put a foreign key field on "One" table, use same primary key on both tables, or embed "One" table to another so you don't need to use the relationship.
+  - One-To-Many: put a foreign key field on "Many" table.
+  - Many-To-Many: create a join table and put primary key of both tables into the join table as foreign keys
+3. identify the cascading (e.g., how to deal with child tables when the parent is updated/deleted)
+4. identify the index to boost performance.
