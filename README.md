@@ -708,6 +708,32 @@ syntax) SELECT * from table_a, table_b or SELECT * from table_a CROSS JOIN table
 ex) see this: https://www.w3resource.com/mysql/advance-query-in-mysql/mysql-cross-join.php
 
 
+## Locking (MySQL)
+
+when multiple connections try to access the same table/row, you might have unexpected result. 
+you can do the followings depending on your use cases:
+
+1. **FOR SHARE**: 
+
+- use when a connection/transaction allows others to use the row/table which the connection is using. 
+- the others can read the data but have to wait for the main connection/transaction commit/rollback.
+
+2. **FOR UPDATE**:
+
+- use when a connection/transaction nto allows others to access the row/table which the connection is using.
+- the others cannot read the data but have to wait for the main connection/transaction commit/rollback.
+
+if the target table has unique (e.g, primary key column), it will lock the row. Otherwise, it will lock the whole table.
+
+references:
+
+1. [experiment of locking](https://stackoverflow.com/questions/6066205/when-using-mysqls-for-update-locking-what-is-exactly-locked)
+2. [Go with Mysql Locking]()
+
+
+
+
+
 ## Design Process
 
 ## RDBMS (MySQL) 
