@@ -82,13 +82,64 @@ SELECT membership_number, full_names FROM accounts_v_members
 
 reference: [here](https://www.guru99.com/views.html)
 
-## full text search
+### full text search
 
 Full-text search is a technique that enables you to search for records that might not perfectly match the search criteria.
 
-## derived table
+### derived table
 
 a verital table 
+
+### Concurrency Handling
+
+#### 2PL (2 Phase Locking) 
+
+old type of concurrency handling employed by many relational database. this approach employes the strong locking so that you can avoid concurrency contention. But, the strong locking comes with a cost which is that making your system difficult to scale. if many clients need to access the data concurrently, they have to wait for the previous locking is released. So, the modern systems adapt to MVCC.
+
+#### MVCC (Multiple Version Concurrency Control)
+
+each transaction was assigned with unique id and if the tx modified a row, the tx id was recorded to the row. each row has a version of shapshot.
+
+this is invented to minimize the locking to make systems more scalable.
+
+?? read more documentation.
+
+### Snapshot
+
+database schema and its data at a given moment.
+
+### Isolation Level
+
+1. **Committed Read**: a 'select' statement in a transaction can read committed data from another transaction. you might see the different value with the same select statement since other transactions might modify the data.
+
+use MVCC internally so other transactions can stil access to a row which is selected by another transaction.
+
+Tx A: ----> SELECT (A) -------------------------------------> SELECT (A') --> 
+
+Tx B: -----------------> SELECT (A) ---> UPDATED (A') -> COMMIT (A')
+
+2. Repeatable Read: a 'select' statemebt in a transaction cannot see the any update from other transactions. your transaction see the same snapshop all the time even if other transactions. 
+
+use MVCC internally so other transactions can stil access to a row which is selected by another transaction.
+
+Tx A: ----> SELECT (A) -> UDPATE (A') ---------------> COMMIT (A')
+
+TX B: -------------------------------> SELECT (A) --->
+
+this might cause **Lost Update** (e.g., Last in Win), the first commit dissappeares when the 2nd one is commited (e.g., override the 1st commit).
+
+Tx A: ---> SELECT (A) ---> UPDATE (A') ---> COMMIT (A')
+
+Tx B: ---> SELECT (A) ----> UPDATE (B') ---------> COMMIT (B') // tx that commited last win and Tx A's commit was lost.
+
+#### Consistent Read
+
+a data on read opration is the same if a transaction was modified the data before commit.
+
+Tx A: ---> Read data (D) ---> Update (D') ---------------------> Commit
+
+Tx B: -----------------------------------> Read data (D) // still D even after Tx A changed it to D' but before commit.
+
 
 ## Antipatterns
 
