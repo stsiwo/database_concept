@@ -140,6 +140,9 @@ Tx A: ---> Read data (D) ---> Update (D') ---------------------> Commit
 
 Tx B: -----------------------------------> Read data (D) // still D even after Tx A changed it to D' but before commit.
 
+## handling Concurrency with Low-Level package
+
+see [this](https://stackoverflow.com/questions/17431338/optimistic-locking-in-mysql)
 
 ## Antipatterns
 
