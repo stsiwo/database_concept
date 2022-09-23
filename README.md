@@ -307,6 +307,7 @@ this antipattern is used when you want to create multiple association for two di
 
 ![polymorphic assciation image](/polymorphic-association.png)
 
+more concrete example: https://stackoverflow.com/questions/441001/possible-to-do-a-mysql-foreign-key-to-one-of-two-possible-tables
 
 ### Metadata Tribbles
 
